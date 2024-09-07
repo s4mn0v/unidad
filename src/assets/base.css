@@ -1,0 +1,19 @@
+/* Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Basic Colors */
+:root {
+  --white: #fff;
+  --balck: #000;
+}
+
+* {
+  margin: 0; 
+}
+
+::selection {
+  color: var(--balck);
+  background: gold;
+}
