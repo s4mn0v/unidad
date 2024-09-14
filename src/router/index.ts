@@ -8,6 +8,7 @@ import Students from '@/views/Students.vue'
 import ActiveStudents from '@/views/ActiveStudents.vue'
 import GraduateStudents from '@/views/GraduateStudents.vue'
 import MoodleStudents from '@/views/MoodleStudents.vue'
+import AllTables from '@/views/AllTables.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,6 +41,10 @@ const router = createRouter({
     {
       path: '/moodle_students',
       component: MoodleStudents
+    },
+    {
+      path: '/alltables',
+      component: AllTables
     },
     {
       path: '/:pathMatch(.*)*', // Catch-all for 404
