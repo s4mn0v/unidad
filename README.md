@@ -1,4 +1,6 @@
 # unidad
+
+## Tables structure
 ```mermaid
 erDiagram
     programas {
