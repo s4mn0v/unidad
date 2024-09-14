@@ -1,5 +1,6 @@
 # unidad
-```erDiagram
+```mermaid
+erDiagram
     programas {
         SERIAL programa_id PK
         VARCHAR(100) nombre_programa
