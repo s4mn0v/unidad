@@ -1,102 +1,50 @@
-# unidad
+# React + TypeScript + Vite
 
-## Tables structure
-```mermaid
-erDiagram
-    programas {
-        SERIAL programa_id PK
-        VARCHAR(100) nombre_programa
-        VARCHAR(50) snies_programa
-    }
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-    estudiantes {
-        VARCHAR(20) cedula_estudiantes PK
-        VARCHAR(20) tipo_documento
-        VARCHAR(50) apellido1
-        VARCHAR(50) apellido2
-        VARCHAR(50) nombre1
-        VARCHAR(50) nombre2
-        VARCHAR(20) telefono
-        VARCHAR(100) direccion
-        VARCHAR(100) correo
-        INT programa_id
-    }
-    
-    estudiantes_activos {
-        VARCHAR(20) cedula_estudiantes_activos PK
-        VARCHAR(50) apellido1
-        VARCHAR(50) apellido2
-        VARCHAR(50) nombre1
-        VARCHAR(50) nombre2
-        VARCHAR(20) telefono
-        VARCHAR(20) estado_u
-        VARCHAR(20) jornada
-        VARCHAR(100) sheetname
-        VARCHAR(100) filename
-    }
-    
-    estudiantes_egresados {
-        VARCHAR(20) cedula_estudiantes_egresados PK
-        INT acta_grado_no
-        INT libro_grado_no
-        INT folio_no
-        INT titulo
-        DATE dia_graduacion
-        VARCHAR(50) snies_programa
-    }
-    
-    estudiantes_potenciales {
-        VARCHAR(20) cedula_estudiantes_potenciales PK
-        INT programa_id
-        INT agente_id
-    }
+Currently, two official plugins are available:
 
-    estudiantes_moodle {
-        VARCHAR(20) cedula_estudiantes_moodle PK
-        INT programa_id
-    }
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-    inscripciones {
-        SERIAL inscripcion_id PK
-        VARCHAR(20) cedula_inscripciones
-        INT programa_id
-        DATE fecha_inscripcion
-        VARCHAR(20) jornada
-    }
+## Expanding the ESLint configuration
 
-    agentes {
-        SERIAL agente_id PK
-        VARCHAR(100) nombre_agente
-    }
+If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
 
-    estudiantes ||--o| programas : "programa_id"
-    estudiantes_activos ||--o| estudiantes : "cedula_estudiantes_activos"
-    estudiantes_egresados ||--o| estudiantes : "cedula_estudiantes_egresados"
-    estudiantes_egresados ||--o| programas : "titulo"
-    estudiantes_potenciales ||--o| estudiantes : "cedula_estudiantes_potenciales"
-    estudiantes_potenciales ||--o| programas : "programa_id"
-    estudiantes_potenciales ||--o| agentes : "agente_id"
-    estudiantes_moodle ||--o| estudiantes : "cedula_estudiantes_moodle"
-    estudiantes_moodle ||--o| programas : "programa_id"
-    inscripciones ||--o| estudiantes : "cedula_inscripciones"
-    inscripciones ||--o| programas : "programa_id"
+- Configure the top-level `parserOptions` property like this:
+
+```js
+export default tseslint.config({
+  languageOptions: {
+    // other options...
+    parserOptions: {
+      project: ['./tsconfig.node.json', './tsconfig.app.json'],
+      tsconfigRootDir: import.meta.dirname,
+    },
+  },
+})
 ```
 
+- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
+- Optionally add `...tseslint.configs.stylisticTypeChecked`
+- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
 
-## Project Setup
+```js
+// eslint.config.js
+import react from 'eslint-plugin-react'
 
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
+export default tseslint.config({
+  // Set the react version
+  settings: { react: { version: '18.3' } },
+  plugins: {
+    // Add the react plugin
+    react,
+  },
+  rules: {
+    // other rules...
+    // Enable its recommended rules
+    ...react.configs.recommended.rules,
+    ...react.configs['jsx-runtime'].rules,
+  },
+})
 ```
