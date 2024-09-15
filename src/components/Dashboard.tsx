@@ -1,24 +1,33 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { LayoutDashboard, FileText, Settings } from 'lucide-react'
 import Sidebar from './Sidebar'
-import Header from './Header.tsx'
+import Header from './Header'
 
 export default function Dashboard() {
-    const [activePage, setActivePage] = useState('Dashboard')
+    const navigate = useNavigate()
+    const location = useLocation()
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
     const pages = [
-        { name: 'Dashboard', icon: <LayoutDashboard className="mr-2 h-4 w-4" /> },
-        { name: 'Documents', icon: <FileText className="mr-2 h-4 w-4" /> },
-        { name: 'Settings', icon: <Settings className="mr-2 h-4 w-4" /> },
+        { name: 'Dashboard', icon: <LayoutDashboard className="mr-2 h-4 w-4" />, path: '/' },
+        { name: 'Documents', icon: <FileText className="mr-2 h-4 w-4" />, path: '/documents' },
+        { name: 'Settings', icon: <Settings className="mr-2 h-4 w-4" />, path: '/settings' },
     ]
+
+    const activePage = pages.find(page => page.path === location.pathname)?.name || 'Dashboard'
+
+    const setActivePage = (pageName: string) => {
+        const page = pages.find(p => p.name === pageName)
+        if (page) {
+            navigate(page.path)
+        }
+    }
 
     return (
         <div className="flex h-screen bg-gray-100">
-            {/* Sidebar */}
             <Sidebar
                 pages={pages}
                 activePage={activePage}
@@ -27,25 +36,14 @@ export default function Dashboard() {
                 setIsSidebarOpen={setIsSidebarOpen}
             />
 
-            {/* Main content */}
             <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Top bar */}
                 <Header
                     activePage={activePage}
                     setIsSidebarOpen={setIsSidebarOpen}
                 />
 
-                {/* Page content */}
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{activePage}</CardTitle>
-                            <CardDescription>This is the {activePage.toLowerCase()} page content.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p>Welcome to the {activePage} page. Here you can find all the relevant information and actions related to {activePage.toLowerCase()}.</p>
-                        </CardContent>
-                    </Card>
+                    <Outlet />
                 </main>
             </div>
         </div>
