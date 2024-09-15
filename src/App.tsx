@@ -1,9 +1,12 @@
-import AppRouter from './AppRouter';
+import { ThemeProvider } from './components/ThemeProvider'
+import AppRouter from './AppRouter'
 
 function App() {
   return (
-    <AppRouter />
-  );
+    <ThemeProvider>
+      <AppRouter />
+    </ThemeProvider>
+  )
 }
 
-export default App;
+export default App
