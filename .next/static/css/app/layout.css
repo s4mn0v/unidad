@@ -648,23 +648,23 @@ video {
 .border-black\/\[\.08\] {
   border-color: rgb(0 0 0 / .08);
 }
-.border-transparent {
-  border-color: transparent;
-}
 .border-input {
   border-color: hsl(var(--input));
 }
-.bg-black\/\[\.05\] {
-  background-color: rgb(0 0 0 / .05);
-}
-.bg-foreground {
-  background-color: hsl(var(--foreground));
+.border-transparent {
+  border-color: transparent;
 }
 .bg-background {
   background-color: hsl(var(--background));
 }
+.bg-black\/\[\.05\] {
+  background-color: rgb(0 0 0 / .05);
+}
 .bg-destructive {
   background-color: hsl(var(--destructive));
+}
+.bg-foreground {
+  background-color: hsl(var(--foreground));
 }
 .bg-primary {
   background-color: hsl(var(--primary));
@@ -679,21 +679,21 @@ video {
   padding-left: 0.25rem;
   padding-right: 0.25rem;
 }
-.px-4 {
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-.py-0\.5 {
-  padding-top: 0.125rem;
-  padding-bottom: 0.125rem;
-}
 .px-3 {
   padding-left: 0.75rem;
   padding-right: 0.75rem;
 }
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
 .px-8 {
   padding-left: 2rem;
   padding-right: 2rem;
+}
+.py-0\.5 {
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
 }
 .py-2 {
   padding-top: 0.5rem;
@@ -715,11 +715,11 @@ video {
   font-size: 0.875rem;
   line-height: 1.25rem;
 }
-.font-semibold {
-  font-weight: 600;
-}
 .font-medium {
   font-weight: 500;
+}
+.font-semibold {
+  font-weight: 600;
 }
 .text-background {
   color: hsl(var(--background));
