@@ -13,14 +13,26 @@ export default function Dashboard({ children }) {
 
   useEffect(() => {
     setMounted(true)
+    // Load sidebar state from localStorage
+    const storedSidebarState = localStorage.getItem('sidebarOpen')
+    if (storedSidebarState !== null) {
+      setSidebarOpen(JSON.parse(storedSidebarState))
+    }
   }, [])
+
+  useEffect(() => {
+    // Save sidebar state to localStorage whenever it changes
+    if (mounted) {
+      localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen))
+    }
+  }, [sidebarOpen, mounted])
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark")
   }
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
+    setSidebarOpen(prevState => !prevState)
   }
 
   if (!mounted) {
