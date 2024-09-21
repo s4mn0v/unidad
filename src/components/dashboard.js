@@ -6,7 +6,7 @@ import { useTheme } from "next-themes"
 import { Moon, Sun, Menu } from "lucide-react"
 import Sidebar from './sidebar'
 
-export default function Dashboard() {
+export default function Dashboard({ children }) {
   const { setTheme, theme } = useTheme()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mounted, setMounted] = useState(false)
@@ -52,8 +52,7 @@ export default function Dashboard() {
         </header>
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
           <div className="container mx-auto px-6 py-8">
-            <h1 className="text-3xl font-semibold mb-4 text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome to your dashboard. This is where you can add your main content.</p>
+            {children}
           </div>
         </main>
       </div>
