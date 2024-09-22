@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Settings, Users, ReplaceAll, Table2, ChevronDown } from 'lucide-react'
+import { Home, Settings, Users, ReplaceAll, Table2, ChevronDown, BookPlus, BookOpenCheck } from 'lucide-react'
 import PropTypes from 'prop-types'
 import { cn } from "@/lib/utils"
 import {
@@ -18,9 +18,9 @@ export default function Sidebar({ isOpen }) {
 
     const links = [
         { href: '/', label: 'Home', icon: Home },
-        { href: '/users', label: 'Users', icon: Users },
-        { href: '/settings', label: 'Settings', icon: Settings },
         { href: '/convert', label: 'Convert', icon: ReplaceAll },
+        { href: '/forms', label: 'Formularios', icon: BookPlus },
+        { href: '/registrations', label: 'Inscripciones', icon: BookOpenCheck}
     ]
 
     const recordsLinks = [
