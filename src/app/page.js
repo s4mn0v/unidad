@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Dashboard from '@/components/dashboard'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, BookOpen, GraduationCap, School } from 'lucide-react'
 import { getStudents, getPrograms } from '@/utils/api'
 

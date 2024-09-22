@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
-import { useTheme } from "next-themes"
-import { Moon, Sun, Menu } from "lucide-react"
+import { Button } from '@/components/ui/button'
+import { useTheme } from 'next-themes'
+import { Moon, Sun, Menu } from 'lucide-react'
 import Sidebar from './sidebar'
 
 export default function Dashboard({ children }) {
@@ -28,7 +28,7 @@ export default function Dashboard({ children }) {
   }, [sidebarOpen, mounted])
 
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark")
+    setTheme(theme === 'dark' ? 'light' : 'dark')
   }
 
   const toggleSidebar = () => {

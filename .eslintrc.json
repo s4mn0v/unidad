@@ -1,3 +1,28 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": "next/core-web-vitals",
+  "rules": {
+    // Start of the rules for complexity
+    "complexity": [
+      "warn",
+      {
+        "max": 10
+      }
+    ],
+    "max-lines": [
+      "warn",
+      {
+        "max": 700
+      }
+    ],
+    "no-unused-vars": "warn",
+    "quotes": [
+      "error",
+      "single"
+    ],
+    "indent": [
+      "error",
+      2
+    ]
+    // End complexity rules
+  }
 }
