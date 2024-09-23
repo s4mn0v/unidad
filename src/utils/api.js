@@ -55,3 +55,8 @@ export const createEstudiantesMoodle = (estudiantesMoodleData) => apiCall(`estud
 export const getEstudiantesMoodle = () => apiCall('estudiantes-moodle');
 export const updateEstudiantesMoodle = (id, updateEstudiantesMoodle) => apiCall(`estudiantes-moodle/${id}`, 'PUT', updateEstudiantesMoodle);
 export const deleteEstudiantesMoodle = (id) => apiCall(`estudiantes-moodle/${id}`, 'DELETE');
+
+export const createEstudiantesEgresados = (estudiantesEgresados) => apiCall(`estudiantes-egresados/${id}`, 'POST', estudiantesEgresados);
+export const getEstudiantesEgresados = () => apiCall('estudiantes-egresados');
+export const updateEstudiantesEgresados = (id, updateEstudiantesEgresados) => apiCall(`estudiantes-egresados/${id}`, 'PUT', updateEstudiantesEgresados);
+export const deleteEstudiantesEgresados = (id) => apiCall(`estudiantes-egresados/${id}`, 'DELETE');
