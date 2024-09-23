@@ -18,11 +18,11 @@ const AUTO_REFRESH_INTERVAL = 60000 // 60 seconds
 
 const SCHEMA = [
   { name: 'cedula_estudiantes', label: 'Cédula', type: 'text' },
-  { name: 'tipo_documento', label: 'Tipo de Documento', type: 'text' },
-  { name: 'apellido1', label: 'Primer Apellido', type: 'text' },
-  { name: 'apellido2', label: 'Segundo Apellido', type: 'text' },
-  { name: 'nombre1', label: 'Primer Nombre', type: 'text' },
-  { name: 'nombre2', label: 'Segundo Nombre', type: 'text' },
+  { name: 'tipo_documento', label: 'T.D.', type: 'text' },
+  { name: 'apellido1', label: 'P. Apellido', type: 'text' },
+  { name: 'apellido2', label: 'S. Apellido', type: 'text' },
+  { name: 'nombre1', label: 'P. Nombre', type: 'text' },
+  { name: 'nombre2', label: 'S. Nombre', type: 'text' },
   { name: 'telefono', label: 'Teléfono', type: 'text' },
   { name: 'direccion', label: 'Dirección', type: 'text' },
   { name: 'correo', label: 'Correo', type: 'email' },

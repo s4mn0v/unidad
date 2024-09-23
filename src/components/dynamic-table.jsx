@@ -61,10 +61,10 @@ export default function DynamicTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {currentItems.map((item) => (
-            <TableRow key={item.id || item[columns[0].key]}>
+          {currentItems.map((item, index) => (
+            <TableRow key={item.id || `${index}-${item[columns[0].key]}`}>
               {columns.map((column) => (
-                <TableCell key={`${item.id || item[columns[0].key]}-${column.key}`}>
+                <TableCell key={`${item.id || index}-${column.key}`}>
                   {column.render ? column.render(item) : item[column.key]}
                 </TableCell>
               ))}

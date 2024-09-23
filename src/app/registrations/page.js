@@ -1,172 +1,181 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
 import Dashboard from '@/components/dashboard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
 import { Toaster } from '@/components/ui/toaster'
-import { createInscription, getPrograms, getStudents, getAgents } from '@/utils/api'
+import { getPrograms, createInscription } from '@/utils/api'
 
-export default function InscripcionesPage() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+const SCHEMA = [
+  { name: 'cedula', label: 'Cédula', type: 'text' },
+  { name: 'nombre', label: 'Nombre', type: 'text' },
+  { name: 'telefono', label: 'Teléfono', type: 'text' },
+  { name: 'sexo', label: 'Sexo', type: 'select', options: [
+    { value: 'masculino', label: 'Masculino' },
+    { value: 'femenino', label: 'Femenino' }
+  ]},
+  { name: 'date', label: 'Fecha de Inscripción', type: 'date' },
+  { name: 'carrera', label: 'Carrera', type: 'select', options: [] },
+  { name: 'jornada', label: 'Jornada', type: 'select', options: [
+    { value: 'manana', label: 'Mañana' },
+    { value: 'tarde', label: 'Tarde' },
+    { value: 'noche', label: 'Noche' }
+  ]},
+  { name: 'nacimiento', label: 'Fecha de Nacimiento', type: 'date' },
+]
+
+export default function Inscripciones() {
+  const [formData, setFormData] = useState({})
+  const [formErrors, setFormErrors] = useState({})
   const [programs, setPrograms] = useState([])
-  const [students, setStudents] = useState([])
-  const [agents, setAgents] = useState([])
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
-    async function fetchData() {
+    const fetchPrograms = async () => {
       try {
-        const [programsData, studentsData, agentsData] = await Promise.all([
-          getPrograms(),
-          getStudents(),
-          getAgents()
-        ])
+        const programsData = await getPrograms()
         setPrograms(programsData)
-        setStudents(studentsData)
-        setAgents(agentsData)
+        // Update SCHEMA with fetched program options
+        const carreraField = SCHEMA.find(field => field.name === 'carrera')
+        if (carreraField) {
+          carreraField.options = programsData.map(program => ({
+            value: program.programa_id.toString(),
+            label: program.nombre_programa
+          }))
+        }
       } catch (error) {
-        console.error('Error fetching data:', error)
+        console.error('Error fetching programs:', error)
+        toast({
+          title: 'Error',
+          description: 'No se pudieron cargar los programas. Por favor, intente de nuevo más tarde.',
+          variant: 'destructive',
+        })
       }
     }
-    fetchData()
-  }, [])
 
-  async function onSubmitInscription(event) {
-    event.preventDefault()
-    setIsLoading(true)
+    fetchPrograms()
+  }, [toast])
 
-    const formData = new FormData(event.currentTarget)
-    const inscriptionData = Object.fromEntries(formData)
-
-    try {
-      await createInscription(inscriptionData)
-      toast({
-        title: 'Éxito',
-        description: 'La inscripción ha sido registrada correctamente.',
-      })
-      router.push('/registrations')
-    } catch (error) {
-      console.error('Error:', error)
-      toast({
-        title: 'Error',
-        description: 'Hubo un problema al registrar la inscripción. Por favor, inténtalo de nuevo.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoading(false)
-    }
+  const validateForm = (data) => {
+    const errors = {}
+    SCHEMA.forEach(field => {
+      if (!data[field.name]) {
+        errors[field.name] = 'Este campo no puede estar vacío'
+      }
+      if ((field.name === 'cedula' || field.name === 'telefono') && data[field.name]) {
+        if (!/^\d+$/.test(data[field.name])) {
+          errors[field.name] = 'Este campo solo debe contener números'
+        }
+        if (data[field.name].length > 11) {
+          errors[field.name] = 'Este campo no puede tener más de 11 dígitos'
+        }
+      }
+      if (field.name === 'nombre' && data[field.name] && !/^[a-zA-Z\s]+$/.test(data[field.name])) {
+        errors[field.name] = 'Este campo solo debe contener letras y espacios'
+      }
+    })
+    return errors
   }
 
+  const handleInputChange = (event) => {
+    const { name, value } = event.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = useCallback(async (event) => {
+    event.preventDefault()
+    setIsSubmitted(true)
+    const validationErrors = validateForm(formData)
+    if (Object.keys(validationErrors).length === 0) {
+      setIsLoading(true)
+      try {
+        // Submit the form data to the API
+        await createInscription(formData)
+        toast({
+          title: 'Éxito',
+          description: 'La inscripción ha sido enviada correctamente.',
+        })
+        // Reset form after submission
+        setFormData({})
+        setFormErrors({})
+        setIsSubmitted(false)
+      } catch (error) {
+        console.error('Error submitting inscription:', error)
+        toast({
+          title: 'Error',
+          description: 'Hubo un problema al enviar la inscripción. Por favor, intente de nuevo.',
+          variant: 'destructive',
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    } else {
+      setFormErrors(validationErrors)
+      toast({
+        title: 'Error',
+        description: 'Por favor, corrija los errores en el formulario.',
+        variant: 'destructive',
+      })
+    }
+  }, [formData, toast])
+
   return (
-    <Dashboard>
-      <div className="mx-auto max-w-2xl">
-        <h1 className="text-3xl font-semibold mb-4 text-foreground">Formulario de Inscripción</h1>
-        <form onSubmit={onSubmitInscription} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="date">Fecha de Inscripción</Label>
-            <Input id="date" name="date" type="date" required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="nombre">Nombre Completo</Label>
-            <Input id="nombre" name="nombre" type="text" required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="nacimiento">Fecha de Nacimiento</Label>
-            <Input id="nacimiento" name="nacimiento" type="date" required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="cedula">Cédula</Label>
-            <Select name="cedula" required>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccione el estudiante" />
-              </SelectTrigger>
-              <SelectContent>
-                {students.map((student) => (
-                  <SelectItem key={student.cedula_estudiantes} value={student.cedula_estudiantes}>
-                    {`${student.nombre1} ${student.apellido1} - ${student.cedula_estudiantes}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="sexo">Sexo</Label>
-            <Select name="sexo" required>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccione el sexo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="masculino">Masculino</SelectItem>
-                <SelectItem value="femenino">Femenino</SelectItem>
-                <SelectItem value="otro">Otro</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="telefono_celular">Teléfono Celular</Label>
-            <Input id="telefono_celular" name="telefono_celular" type="tel" required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="carrera">Carrera</Label>
-            <Select name="carrera" required>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccione la carrera" />
-              </SelectTrigger>
-              <SelectContent>
-                {programs.map((program) => (
-                  <SelectItem key={program.programa_id} value={program.programa_id.toString()}>
-                    {program.nombre_programa}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="jornada">Jornada</Label>
-            <Select name="jornada" required>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccione la jornada" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="diurna">Diurna</SelectItem>
-                <SelectItem value="nocturna">Nocturna</SelectItem>
-                <SelectItem value="fines_de_semana">Fines de Semana</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="agente">Agente</Label>
-            <Select name="agente" required>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccione el agente" />
-              </SelectTrigger>
-              <SelectContent>
-                {agents.map((agent) => (
-                  <SelectItem key={agent.agente_id} value={agent.agente_id.toString()}>
-                    {agent.nombre_agente}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && (
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            )}
-            Registrar Inscripción
+    <main>
+      <Dashboard>
+        <div className="text-center mb-4">
+          <h1 className="text-3xl font-semibold text-foreground">Inscripciones</h1>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
+          {SCHEMA.map(field => (
+            <div key={field.name}>
+              <label htmlFor={field.name} className="block text-sm font-medium mb-3">
+                {field.label}
+              </label>
+              {field.type === 'select' ? (
+                <Select
+                  name={field.name}
+                  value={formData[field.name] || ''}
+                  onValueChange={(value) => handleInputChange({ target: { name: field.name, value } })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={`Seleccione ${field.label}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {field.options.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  type={field.type}
+                  id={field.name}
+                  name={field.name}
+                  placeholder={field.label}
+                  value={formData[field.name] || ''}
+                  onChange={handleInputChange}
+                  className="w-full"
+                />
+              )}
+              {isSubmitted && formErrors[field.name] && (
+                <p className="text-red-500 text-sm mt-1">{formErrors[field.name]}</p>
+              )}
+            </div>
+          ))}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Enviando...' : 'Enviar Inscripción'}
           </Button>
         </form>
-      </div>
+      </Dashboard>
       <Toaster />
-    </Dashboard>
+    </main>
   )
 }
