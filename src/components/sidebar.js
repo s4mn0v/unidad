@@ -28,6 +28,7 @@ export default function Sidebar({ isOpen }) {
     { href: '/records/active_students', label: 'Estudiantes Activos' },
     { href: '/records/moodle_students', label: 'Estudiantes Moodle' },
     { href: '/records/graduates_students', label: 'Egresados'},
+    { href: '/records/registrations', label: 'Inscripciones'}
   ]
 
   return (

@@ -1,14 +1,33 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Dashboard from '@/components/dashboard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ChevronDown, ChevronUp } from 'lucide-react'
 import { getStudents, getPrograms } from '@/utils/api'
+import DynamicTable from '@/components/dynamic-table'
+import ActionButtons from '@/components/action-button'
+import { useToast } from '@/components/ui/use-toast'
+import { Toaster } from '@/components/ui/toaster'
+import ReloadButton from '@/components/reload-button'
+
+const ITEM_TYPE = 'estudiante'
+const ID_FIELD = 'cedula_estudiantes'
+const AUTO_REFRESH_INTERVAL = 60000 // 60 seconds
+
+const SCHEMA = [
+  { name: 'cedula_estudiantes', label: 'Cédula', type: 'text' },
+  { name: 'tipo_documento', label: 'Tipo de Documento', type: 'text' },
+  { name: 'apellido1', label: 'Primer Apellido', type: 'text' },
+  { name: 'apellido2', label: 'Segundo Apellido', type: 'text' },
+  { name: 'nombre1', label: 'Primer Nombre', type: 'text' },
+  { name: 'nombre2', label: 'Segundo Nombre', type: 'text' },
+  { name: 'telefono', label: 'Teléfono', type: 'text' },
+  { name: 'direccion', label: 'Dirección', type: 'text' },
+  { name: 'correo', label: 'Correo', type: 'email' },
+  { name: 'programa_id', label: 'Programa', type: 'select', options: [] },
+]
 
 export default function Students() {
   const [students, setStudents] = useState([])
@@ -17,73 +36,123 @@ export default function Students() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortColumn, setSortColumn] = useState('')
   const [sortDirection, setSortDirection] = useState('asc')
-  const [currentPage, setCurrentPage] = useState(1)
   const [studentsPerPage, setStudentsPerPage] = useState(10)
   const [showSummary, setShowSummary] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
+
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [studentsData, programsData] = await Promise.all([getStudents(), getPrograms()])
+      setStudents(studentsData)
+      setFilteredStudents(studentsData)
+      setPrograms(programsData)
+      
+      // Update SCHEMA with program options
+      SCHEMA.find(field => field.name === 'programa_id').options = programsData.map(program => ({
+        value: program.programa_id,
+        label: program.nombre_programa
+      }))
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      toast({
+        title: 'Error',
+        description: 'Hubo un problema al cargar los datos. Por favor, inténtalo de nuevo.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [toast])
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [studentsData, programsData] = await Promise.all([getStudents(), getPrograms()])
-        setStudents(studentsData)
-        setFilteredStudents(studentsData)
-        setPrograms(programsData)
-      } catch (error) {
-        console.error('Error fetching data:', error)
-      }
-    }
     fetchData()
-  }, [])
+    const intervalId = setInterval(fetchData, AUTO_REFRESH_INTERVAL)
+    return () => clearInterval(intervalId)
+  }, [fetchData])
 
   const handleSearch = (event) => {
     const term = event.target.value.toLowerCase()
     setSearchTerm(term)
     const filtered = students.filter(student => 
-      student.nombre1.toLowerCase().includes(term) ||
-      student.apellido1.toLowerCase().includes(term) ||
-      student.cedula_estudiantes.toLowerCase().includes(term)
+      Object.values(student).some(value => 
+        value && value.toString().toLowerCase().includes(term)
+      )
     )
     setFilteredStudents(filtered)
-    setCurrentPage(1)
   }
 
   const handleSort = (column) => {
-    if (column === sortColumn) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortColumn(column)
-      setSortDirection('asc')
-    }
+    const newDirection = column === sortColumn && sortDirection === 'asc' ? 'desc' : 'asc'
+    setSortColumn(column)
+    setSortDirection(newDirection)
 
     const sorted = [...filteredStudents].sort((a, b) => {
-      if (a[column] < b[column]) return sortDirection === 'asc' ? -1 : 1
-      if (a[column] > b[column]) return sortDirection === 'asc' ? 1 : -1
+      if (a[column] < b[column]) return newDirection === 'asc' ? -1 : 1
+      if (a[column] > b[column]) return newDirection === 'asc' ? 1 : -1
       return 0
     })
     setFilteredStudents(sorted)
   }
 
-  const indexOfLastStudent = currentPage * studentsPerPage
-  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage
-  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent)
+  const handleDelete = useCallback((studentId) => {
+    setStudents(prevStudents => prevStudents.filter(student => student[ID_FIELD] !== studentId))
+    setFilteredStudents(prevFiltered => prevFiltered.filter(student => student[ID_FIELD] !== studentId))
+    toast({
+      title: 'Éxito',
+      description: 'El estudiante ha sido eliminado correctamente.',
+    })
+  }, [toast])
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber)
+  const handleUpdate = useCallback((updatedStudent) => {
+    setStudents(prevStudents => 
+      prevStudents.map(student => 
+        student[ID_FIELD] === updatedStudent[ID_FIELD] ? updatedStudent : student
+      )
+    )
+    setFilteredStudents(prevFiltered => 
+      prevFiltered.map(student => 
+        student[ID_FIELD] === updatedStudent[ID_FIELD] ? updatedStudent : student
+      )
+    )
+    toast({
+      title: 'Éxito',
+      description: 'Los datos del estudiante han sido actualizados correctamente.',
+    })
+  }, [toast])
 
-  const totalStudents = students.length
-  const programDistribution = programs.map(program => {
-    const count = students.filter(student => student.programa_id === program.programa_id).length
-    const percentage = (count / totalStudents * 100).toFixed(2)
-    return { ...program, count, percentage }
-  })
+  const columns = SCHEMA.map(field => ({
+    key: field.name,
+    label: field.label,
+    sortable: true,
+    render: field.name === 'programa_id' 
+      ? (item) => programs.find(p => p.programa_id === item.programa_id)?.nombre_programa || 'N/A'
+      : undefined
+  }))
+
+  const renderActions = useCallback((student) => (
+    <ActionButtons
+      item={student}
+      onDelete={handleDelete}
+      onUpdate={handleUpdate}
+      itemType={ITEM_TYPE}
+      schema={SCHEMA}
+      idField={ID_FIELD}
+    />
+  ), [handleDelete, handleUpdate])
 
   return (
     <main>
       <Dashboard>
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-semibold text-foreground">Estudiantes</h1>
-          <Button onClick={() => setShowSummary(!showSummary)}>
-            {showSummary ? 'Ocultar Resumen' : 'Mostrar Resumen'}
-          </Button>
+          <div className="flex space-x-2">
+            <ReloadButton onClick={fetchData} loading={loading} />
+            <Button onClick={() => setShowSummary(!showSummary)}>
+              {showSummary ? 'Ocultar Resumen' : 'Mostrar Resumen'}
+            </Button>
+          </div>
         </div>
 
         {showSummary && (
@@ -93,20 +162,24 @@ export default function Students() {
                 <CardTitle className="text-sm font-medium">Total Estudiantes</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalStudents}</div>
+                <div className="text-2xl font-bold">{students.length}</div>
               </CardContent>
             </Card>
-            {programDistribution.map(program => (
-              <Card key={program.programa_id}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{program.nombre_programa}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{program.percentage}%</div>
-                  <p className="text-xs text-muted-foreground">{program.count} estudiantes</p>
-                </CardContent>
-              </Card>
-            ))}
+            {programs.map(program => {
+              const count = students.filter(student => student.programa_id === program.programa_id).length
+              const percentage = (count / students.length * 100).toFixed(2)
+              return (
+                <Card key={program.programa_id}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{program.nombre_programa}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{percentage}%</div>
+                    <p className="text-xs text-muted-foreground">{count} estudiantes</p>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         )}
 
@@ -116,72 +189,19 @@ export default function Students() {
             value={searchTerm}
             onChange={handleSearch}
           />
-          <div className="flex justify-between items-center">
-            <Select value={studentsPerPage.toString()} onValueChange={(value) => setStudentsPerPage(Number(value))}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Estudiantes por página" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10 por página</SelectItem>
-                <SelectItem value="20">20 por página</SelectItem>
-                <SelectItem value="50">50 por página</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">
-                  <Button variant="ghost" onClick={() => handleSort('cedula_estudiantes')}>
-                    Cédula
-                    {sortColumn === 'cedula_estudiantes' && (
-                      sortDirection === 'asc' ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />
-                    )}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('nombre1')}>
-                    Nombre
-                    {sortColumn === 'nombre1' && (
-                      sortDirection === 'asc' ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />
-                    )}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('apellido1')}>
-                    Apellido
-                    {sortColumn === 'apellido1' && (
-                      sortDirection === 'asc' ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />
-                    )}
-                  </Button>
-                </TableHead>
-                <TableHead>Programa</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {currentStudents.map((student) => (
-                <TableRow key={student.cedula_estudiantes}>
-                  <TableCell className="font-medium">{student.cedula_estudiantes}</TableCell>
-                  <TableCell>{student.nombre1}</TableCell>
-                  <TableCell>{student.apellido1}</TableCell>
-                  <TableCell>{programs.find(p => p.programa_id === student.programa_id)?.nombre_programa || 'N/A'}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div className="flex justify-center space-x-2">
-            {Array.from({ length: Math.ceil(filteredStudents.length / studentsPerPage) }, (_, i) => (
-              <Button
-                key={i}
-                variant={currentPage === i + 1 ? 'default' : 'outline'}
-                onClick={() => paginate(i + 1)}
-              >
-                {i + 1}
-              </Button>
-            ))}
-          </div>
+          <DynamicTable
+            data={filteredStudents}
+            columns={columns}
+            onSort={handleSort}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            itemsPerPage={studentsPerPage}
+            onItemsPerPageChange={setStudentsPerPage}
+            renderActions={renderActions}
+          />
         </div>
       </Dashboard>
+      <Toaster />
     </main>
   )
 }

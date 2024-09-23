@@ -9,24 +9,27 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
 import { Toaster } from '@/components/ui/toaster'
-import { createInscription, getPrograms, getStudents } from '@/utils/api'
+import { createInscription, getPrograms, getStudents, getAgents } from '@/utils/api'
 
 export default function InscripcionesPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [programs, setPrograms] = useState([])
   const [students, setStudents] = useState([])
+  const [agents, setAgents] = useState([])
   const { toast } = useToast()
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [programsData, studentsData] = await Promise.all([
+        const [programsData, studentsData, agentsData] = await Promise.all([
           getPrograms(),
-          getStudents()
+          getStudents(),
+          getAgents()
         ])
         setPrograms(programsData)
         setStudents(studentsData)
+        setAgents(agentsData)
       } catch (error) {
         console.error('Error fetching data:', error)
       }
@@ -64,10 +67,22 @@ export default function InscripcionesPage() {
     <Dashboard>
       <div className="mx-auto max-w-2xl">
         <h1 className="text-3xl font-semibold mb-4 text-foreground">Formulario de Inscripción</h1>
-        <form onSubmit={onSubmitInscription} className="space-y-8">
+        <form onSubmit={onSubmitInscription} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="cedula_inscripciones">Cédula del Estudiante</Label>
-            <Select name="cedula_inscripciones" required>
+            <Label htmlFor="date">Fecha de Inscripción</Label>
+            <Input id="date" name="date" type="date" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="nombre">Nombre Completo</Label>
+            <Input id="nombre" name="nombre" type="text" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="nacimiento">Fecha de Nacimiento</Label>
+            <Input id="nacimiento" name="nacimiento" type="date" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="cedula">Cédula</Label>
+            <Select name="cedula" required>
               <SelectTrigger>
                 <SelectValue placeholder="Seleccione el estudiante" />
               </SelectTrigger>
@@ -81,10 +96,27 @@ export default function InscripcionesPage() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="programa_id">Programa</Label>
-            <Select name="programa_id" required>
+            <Label htmlFor="sexo">Sexo</Label>
+            <Select name="sexo" required>
               <SelectTrigger>
-                <SelectValue placeholder="Seleccione el programa" />
+                <SelectValue placeholder="Seleccione el sexo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="masculino">Masculino</SelectItem>
+                <SelectItem value="femenino">Femenino</SelectItem>
+                <SelectItem value="otro">Otro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="telefono_celular">Teléfono Celular</Label>
+            <Input id="telefono_celular" name="telefono_celular" type="tel" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="carrera">Carrera</Label>
+            <Select name="carrera" required>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione la carrera" />
               </SelectTrigger>
               <SelectContent>
                 {programs.map((program) => (
@@ -94,10 +126,6 @@ export default function InscripcionesPage() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="fecha_inscripcion">Fecha de Inscripción</Label>
-            <Input id="fecha_inscripcion" name="fecha_inscripcion" type="date" required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="jornada">Jornada</Label>
@@ -112,6 +140,21 @@ export default function InscripcionesPage() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="agente">Agente</Label>
+            <Select name="agente" required>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione el agente" />
+              </SelectTrigger>
+              <SelectContent>
+                {agents.map((agent) => (
+                  <SelectItem key={agent.agente_id} value={agent.agente_id.toString()}>
+                    {agent.nombre_agente}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <Button type="submit" disabled={isLoading}>
             {isLoading && (
               <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -119,7 +162,7 @@ export default function InscripcionesPage() {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             )}
-                        Registrar Inscripción
+            Registrar Inscripción
           </Button>
         </form>
       </div>
