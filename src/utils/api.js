@@ -30,7 +30,10 @@ export const getStudents = () => apiCall('estudiantes');
 export const updateStudent = (id, studentData) => apiCall(`estudiantes/${id}`, 'PUT', studentData);
 export const deleteStudent = (id) => apiCall(`estudiantes/${id}`, 'DELETE');
 
+export const createProgram = (programData) => apiCall('programas', 'POST', programData);
 export const getPrograms = () => apiCall('programas');
+export const updateProgram = (id, programData) => apiCall(`programas/${id}`, 'PUT', programData);
+export const deleteProgram = (id) => apiCall(`programas/${id}`, 'DELETE');
 
 export const createAgent = (agentData) => apiCall('agentes', 'POST', agentData);
 export const getAgents = () => apiCall('agentes');
